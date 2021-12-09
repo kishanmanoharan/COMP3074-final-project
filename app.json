@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "COMP3074-final-project",
+    "slug": "COMP3074-final-project",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "COMP3074-final-project"
+}
