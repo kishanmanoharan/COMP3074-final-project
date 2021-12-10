@@ -1,21 +1,116 @@
 import "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
-import React, { useRef } from "react";
-import { StyleSheet, Text, View, FlatList } from "react-native";
-import { NavigationContainer, DarkTheme } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import ReactAnimatedWeather from "react-animated-weather";
+import React, { useRef, useState, useEffect } from "react";
+import { AppRegistry, StyleSheet, Text, View, FlatList } from "react-native";
+import { ReactAnimatedWeather } from "react-animated-weather";
 import { Col, Row, Grid } from "react-native-easy-grid";
-
-import {
-  TextInput,
-  Button,
-  List,
-  ActivityIndicator,
-  Colors,
-} from "react-native-paper";
-
+import { ActivityIndicator, Colors } from "react-native-paper";
 import * as Location from "expo-location";
+
+AppRegistry.registerComponent("main", () => App);
+
+export default function App() {
+  const [data, setData] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+      console.log(location);
+      setData(
+        await getWeather(location.coords.latitude, location.coords.longitude)
+      );
+    })();
+  }, []);
+  let text = "Waiting..";
+  if (errorMsg) {
+    text = errorMsg;
+  } else if (location) {
+    text = JSON.stringify(location);
+  }
+
+  if (data != null) {
+    console.log(data);
+
+    return (
+      <View style={styles.container}>
+        <div
+          style={{ height: "35vh", margin: "20px" }}
+          className="weather-icon"
+        >
+          <Text style={styles.subtemp}>Location: {data.timezone}</Text>
+          <ReactAnimatedWeather
+            icon={setIcon(data.current.weather[0].icon)}
+            color={"goldenrod"}
+            size={256}
+            animate={true}
+          />
+        </div>
+        {/* <Text style={styles.textWhite}>DONE</Text> */}
+        <Text style={styles.mainTemp}>{data.current.temp} °C</Text>
+        <Text style={styles.subtemp}>
+          {data.current.weather[0].main}, Feels like {data.current.feels_like}{" "}
+          °C
+        </Text>
+        <FlatList
+          style={{ margin: 8, width: "90%" }}
+          data={data.daily}
+          contentContainerStyle={{ alignItems: "left" }}
+          renderItem={({ item }) => (
+            <div
+              style={{
+                backgroundColor: "#444",
+                borderRadius: 16,
+                marginTop: 16,
+              }}
+            >
+              <Grid style={{ margin: 6, marginTop: 16, marginBottom: 16 }}>
+                <Col size={1}>
+                  <ReactAnimatedWeather
+                    icon={setIcon(item.weather[0].icon)}
+                    color={"#fff"}
+                    size={32}
+                    animate={true}
+                  />
+                </Col>
+                <Col size={4} style={{ marginLeft: 10 }}>
+                  <Text style={styles.subtemp}>
+                    {getDay(item.dt)}
+                    {"  "}
+                  </Text>
+                </Col>
+                <Col size={3}>
+                  <Text style={styles.subtemp}>{item.temp.day} °C</Text>
+                </Col>
+              </Grid>
+            </div>
+          )}
+        />
+        <StatusBar style="auto" />
+      </View>
+    );
+  } else {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator
+          animating={true}
+          size={"large"}
+          color={Colors.blue800}
+        />
+        <Text style={styles.textWhite}>Loading...</Text>
+        <StatusBar style="auto" />
+      </View>
+    );
+  }
+}
 
 async function getWeather(latitude, longitude) {
   return fetch(
@@ -64,123 +159,9 @@ function getDay(datetime) {
   return weekday[date.getDay()];
 }
 
-export default function App() {
-  const [data, setData] = React.useState(null);
-  const [location, setLocation] = React.useState(null);
-  const [errorMsg, setErrorMsg] = React.useState(null);
-
-  React.useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
-        return;
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
-      console.log(location);
-      setData(
-        await getWeather(location.coords.latitude, location.coords.longitude)
-      );
-    })();
-  }, []);
-  let text = "Waiting..";
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = JSON.stringify(location);
-  }
-
-  if (data != null) {
-    console.log(data);
-
-    return (
-      <View style={styles.container}>
-        <div style={{ marginTop: "32px" }} className="weather-icon">
-          {/* <Text
-            style={{
-              color: "#fff",
-              fontSize: 20,
-              fontWeight: "300",
-              display: "block",
-            }}
-          >
-            Location: {data.timezone}
-          </Text> */}
-          <ReactAnimatedWeather
-            icon={setIcon(data.current.weather[0].icon)}
-            color={"goldenrod"}
-            size={256}
-            animate={true}
-          />
-        </div>
-        <Text style={styles.mainTemp}>{data.current.temp} °C</Text>
-        <Text style={styles.subtemp}>
-          {data.current.weather[0].main}, Feels like {data.current.feels_like}{" "}
-          °C
-        </Text>
-        <FlatList
-          style={{ margin: 8, width: "90%" }}
-          data={data.daily}
-          contentContainerStyle={{ alignItems: "left" }}
-          renderItem={({ item }) => (
-            <div
-              style={{
-                backgroundColor: "#303030",
-                borderRadius: 32,
-                marginTop: 16,
-              }}
-            >
-              <Grid
-                style={{
-                  margin: 6,
-                  marginTop: 16,
-                  marginBottom: 16,
-                  alignItems: "center",
-                }}
-              >
-                <Col size={1} style={{ marginLeft: 10 }}>
-                  <ReactAnimatedWeather
-                    icon={setIcon(item.weather[0].icon)}
-                    color={"#fff"}
-                    size={64}
-                    animate={true}
-                  />
-                </Col>
-                <Col size={4} style={{ marginLeft: 10, alignItems: "right" }}>
-                  <Text style={styles.dayText}>
-                    {getDay(item.dt)}
-                    {"  "}
-                  </Text>
-                </Col>
-                <Col size={2} style={{}}>
-                  <Text style={styles.subtemp}>{item.temp.day} °C</Text>
-                </Col>
-              </Grid>
-            </div>
-          )}
-        />
-        <StatusBar style="auto" />
-      </View>
-    );
-  } else {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator
-          animating={true}
-          size={"large"}
-          color={Colors.blue800}
-        />
-        <Text style={styles.textWhite}>Loading...</Text>
-        <StatusBar style="auto" />
-      </View>
-    );
-  }
-}
-
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: "#121212",
     color: "#fff",
     alignItems: "center",
@@ -206,15 +187,7 @@ const styles = StyleSheet.create({
   },
   dayItem: {
     width: 100,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dayText: {
-    color: "#fff",
-    display: "block",
-    fontSize: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    textAlignVertical: "middle",
   },
 });
+
+// export default App();
