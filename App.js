@@ -6,7 +6,6 @@ import { Fontisto } from "@expo/vector-icons";
 import { Col, Row, Grid } from "react-native-easy-grid";
 import { ActivityIndicator, Colors } from "react-native-paper";
 import * as Location from "expo-location";
-// import WaterDrop from "./assets/water_drop_black_24dp.svg";
 
 AppRegistry.registerComponent("Appname", () => App);
 
@@ -30,58 +29,40 @@ function setIcon(icon) {
   switch (icon) {
     case "01d":
       return "day-sunny";
-      break;
     case "01n":
       return "night-clear";
-      break;
     case "02d":
       return "day-cloudy";
-      break;
     case "02n":
       return "night-alt-cloudy";
-      break;
     case "03d":
       return "day-cloudy";
-      break;
     case "03n":
       return "night-alt-cloudy";
-      break;
     case "04d":
       return "cloudy";
-      break;
     case "04n":
       return "cloudy";
-      break;
     case "09d":
       return "rain";
-      break;
     case "09n":
       return "rain";
-      break;
     case "10d":
       return "day-rain";
-      break;
     case "10n":
       return "night-alt-rain";
-      break;
     case "11d":
       return "lightnings";
-      break;
     case "11n":
       return "lightnings";
-      break;
     case "13d":
       return "day-snow";
-      break;
     case "13n":
       return "night-alt-snow";
-      break;
     case "50d":
       return "fog";
-      break;
     case "50n":
       return "fog";
-      break;
   }
 }
 
@@ -108,13 +89,12 @@ function getTime(datetime) {
 export default function App() {
   const [data, setData] = React.useState(null);
   const [location, setLocation] = React.useState(null);
-  const [errorMsg, setErrorMsg] = React.useState(null);
 
   React.useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
+        console.log("Permission to access location was denied");
         return;
       }
 
@@ -165,7 +145,7 @@ export default function App() {
             <Text style={styles.daySubText}>{item.weather[0].main}</Text>
           </Col>
           <Col size={2} style={{}}>
-            <Text style={styles.subtemp}>{Math.round(item.temp.day)} °C</Text>
+            <Text style={styles.smallTemp}>{Math.round(item.temp.day)} °C</Text>
           </Col>
         </Grid>
       </View>
@@ -181,7 +161,8 @@ export default function App() {
             alignItems: "center",
             justifyContent: "center",
             maxWidth: 600,
-            width: "90%",
+            width: "95%",
+            height: "100%",
             borderRadius: 30,
             paddingBottom: 16,
             padding: 30,
@@ -190,7 +171,7 @@ export default function App() {
           <View style={styles.mainIcon}>
             <Fontisto
               name={setIcon(data.current.weather[0].icon)}
-              size={256}
+              size={200}
               color="white"
             />
           </View>
@@ -233,7 +214,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   loading: {
-    backgroundColor: "#222",
+    backgroundColor: "#000",
     color: "#fff",
     alignItems: "center",
     justifyContent: "center",
@@ -243,21 +224,9 @@ const styles = StyleSheet.create({
     alignContent: "center",
     backgroundColor: "#000",
     paddingTop: 55,
+    paddingBottom: 10,
     alignSelf: "center",
     width: "100%",
-    height: "100%",
-  },
-  container: {
-    alignSelf: "center",
-    backgroundColor: "#222",
-    color: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    maxWidth: 600,
-    width: "90%",
-    borderRadius: 30,
-    paddingBottom: 16,
-    padding: 30,
   },
   textWhite: {
     color: "#fff",
@@ -270,6 +239,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 20,
     fontWeight: "300",
+  },
+  smallTemp: {
+    color: "#fff",
+    fontSize: 32,
+    fontWeight: "400",
   },
   iconContainer: {
     height: "30vh",
