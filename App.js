@@ -1,21 +1,14 @@
 import "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import React, { useRef } from "react";
-import { StyleSheet, Text, View, FlatList } from "react-native";
-import { NavigationContainer, DarkTheme } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import ReactAnimatedWeather from "react-animated-weather";
+import { AppRegistry, StyleSheet, Text, View, FlatList } from "react-native";
+import { Fontisto } from "@expo/vector-icons";
 import { Col, Row, Grid } from "react-native-easy-grid";
-
-import {
-  TextInput,
-  Button,
-  List,
-  ActivityIndicator,
-  Colors,
-} from "react-native-paper";
-
+import { ActivityIndicator, Colors } from "react-native-paper";
 import * as Location from "expo-location";
+// import WaterDrop from "./assets/water_drop_black_24dp.svg";
+
+AppRegistry.registerComponent("Appname", () => App);
 
 async function getWeather(latitude, longitude) {
   return fetch(
@@ -23,32 +16,75 @@ async function getWeather(latitude, longitude) {
   ).then((res) => res.json());
 }
 
-function setIcon(icon) {
-  if (icon == "01d") {
-    return "CLEAR_DAY";
-  } else if (icon == "01n") {
-    return "CLEAR_NIGHT";
-  } else if (icon == "02d") {
-    return "PARTLY_CLOUDY_DAY";
-  } else if (icon == "02n") {
-    return "PARTLY_CLOUDY_NIGHT";
-  } else if (icon == "03d" || icon == "03n" || icon == "04d" || icon == "04n") {
-    return "CLOUDY";
-  } else if (
-    icon == "09d" ||
-    icon == "09n" ||
-    icon == "10d" ||
-    icon == "10n" ||
-    icon == "11d" ||
-    icon == "11n"
-  ) {
-    return "RAIN";
-  } else if (icon == "13d" || icon == "13n") {
-    return "SNOW";
-  } else if (icon == "50d" || icon == "50n") {
-    return "FOG";
+function setColor(icon) {
+  if (icon.includes("n")) {
+    return "#282A4C";
+  } else if (icon.includes("d")) {
+    return "#FC9601";
+  } else {
+    return "#303030";
   }
 }
+
+function setIcon(icon) {
+  switch (icon) {
+    case "01d":
+      return "day-sunny";
+      break;
+    case "01n":
+      return "night-clear";
+      break;
+    case "02d":
+      return "day-cloudy";
+      break;
+    case "02n":
+      return "night-alt-cloudy";
+      break;
+    case "03d":
+      return "day-cloudy";
+      break;
+    case "03n":
+      return "night-alt-cloudy";
+      break;
+    case "04d":
+      return "cloudy";
+      break;
+    case "04n":
+      return "cloudy";
+      break;
+    case "09d":
+      return "rain";
+      break;
+    case "09n":
+      return "rain";
+      break;
+    case "10d":
+      return "day-rain";
+      break;
+    case "10n":
+      return "night-alt-rain";
+      break;
+    case "11d":
+      return "lightnings";
+      break;
+    case "11n":
+      return "lightnings";
+      break;
+    case "13d":
+      return "day-snow";
+      break;
+    case "13n":
+      return "night-alt-snow";
+      break;
+    case "50d":
+      return "fog";
+      break;
+    case "50n":
+      return "fog";
+      break;
+  }
+}
+
 const weekday = [
   "Sunday",
   "Monday",
@@ -62,6 +98,11 @@ const weekday = [
 function getDay(datetime) {
   var date = new Date(datetime * 1000);
   return weekday[date.getDay()];
+}
+
+function getTime(datetime) {
+  var date = new Date(datetime * 1000);
+  return date.getHours() + ":" + date.getMinutes();
 }
 
 export default function App() {
@@ -79,114 +120,144 @@ export default function App() {
 
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
-      console.log(location);
       setData(
         await getWeather(location.coords.latitude, location.coords.longitude)
       );
     })();
   }, []);
-  let text = "Waiting..";
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = JSON.stringify(location);
-  }
 
   if (data != null) {
-    console.log(data);
+    var key = 0;
+    while (key < 8) {
+      data.daily[key].id = key;
+      key += 1;
+    }
+
+    const renderItem = ({ item }) => (
+      <View
+        style={{
+          backgroundColor: "#222",
+          borderRadius: 32,
+          marginTop: 16,
+          minWidth: 300,
+          width: "100%",
+        }}
+      >
+        <Grid
+          style={{
+            marginTop: 16,
+            marginBottom: 16,
+            alignItems: "center",
+          }}
+        >
+          <Col size={1} style={{ marginLeft: 10, alignItems: "center" }}>
+            <Fontisto
+              name={setIcon(item.weather[0].icon)}
+              size={40}
+              color="white"
+            />
+          </Col>
+          <Col size={4} style={{ marginLeft: 10 }}>
+            <Text style={styles.dayText}>
+              {getDay(item.dt)}
+              {"  "}
+            </Text>
+            <Text style={styles.daySubText}>{item.weather[0].main}</Text>
+          </Col>
+          <Col size={2} style={{}}>
+            <Text style={styles.subtemp}>{Math.round(item.temp.day)} °C</Text>
+          </Col>
+        </Grid>
+      </View>
+    );
 
     return (
-      <View style={styles.container}>
-        <div style={{ marginTop: "32px" }} className="weather-icon">
-          {/* <Text
-            style={{
-              color: "#fff",
-              fontSize: 20,
-              fontWeight: "300",
-              display: "block",
-            }}
-          >
-            Location: {data.timezone}
-          </Text> */}
-          <ReactAnimatedWeather
-            icon={setIcon(data.current.weather[0].icon)}
-            color={"goldenrod"}
-            size={256}
-            animate={true}
+      <View style={styles.main}>
+        <View
+          style={{
+            alignSelf: "center",
+            backgroundColor: setColor(data.current.weather[0].icon),
+            color: "#fff",
+            alignItems: "center",
+            justifyContent: "center",
+            maxWidth: 600,
+            width: "90%",
+            borderRadius: 30,
+            paddingBottom: 16,
+            padding: 30,
+          }}
+        >
+          <View style={styles.mainIcon}>
+            <Fontisto
+              name={setIcon(data.current.weather[0].icon)}
+              size={256}
+              color="white"
+            />
+          </View>
+          <Text style={styles.mainTemp}>
+            {Math.round(data.current.temp)} °C
+          </Text>
+          <Text style={styles.subtemp}>
+            {data.current.weather[0].main}, Feels like{" "}
+            {Math.round(data.current.feels_like)} °C
+          </Text>
+          <Text style={styles.subtemp}>{data.timezone}</Text>
+
+          <FlatList
+            style={{ margin: 4, width: "100%" }}
+            data={data.daily}
+            renderItem={(item) => renderItem(item)}
+            keyExtractor={(item) => item.id}
           />
-        </div>
-        <Text style={styles.mainTemp}>{data.current.temp} °C</Text>
-        <Text style={styles.subtemp}>
-          {data.current.weather[0].main}, Feels like {data.current.feels_like}{" "}
-          °C
-        </Text>
-        <FlatList
-          style={{ margin: 8, width: "90%" }}
-          data={data.daily}
-          contentContainerStyle={{ alignItems: "left" }}
-          renderItem={({ item }) => (
-            <div
-              style={{
-                backgroundColor: "#303030",
-                borderRadius: 32,
-                marginTop: 16,
-              }}
-            >
-              <Grid
-                style={{
-                  margin: 6,
-                  marginTop: 16,
-                  marginBottom: 16,
-                  alignItems: "center",
-                }}
-              >
-                <Col size={1} style={{ marginLeft: 10 }}>
-                  <ReactAnimatedWeather
-                    icon={setIcon(item.weather[0].icon)}
-                    color={"#fff"}
-                    size={64}
-                    animate={true}
-                  />
-                </Col>
-                <Col size={4} style={{ marginLeft: 10, alignItems: "right" }}>
-                  <Text style={styles.dayText}>
-                    {getDay(item.dt)}
-                    {"  "}
-                  </Text>
-                </Col>
-                <Col size={2} style={{}}>
-                  <Text style={styles.subtemp}>{item.temp.day} °C</Text>
-                </Col>
-              </Grid>
-            </div>
-          )}
-        />
-        <StatusBar style="auto" />
+          <StatusBar style="light" />
+        </View>
       </View>
     );
   } else {
     return (
-      <View style={styles.container}>
+      <View style={styles.loading}>
+        <StatusBar style="light" />
         <ActivityIndicator
           animating={true}
           size={"large"}
           color={Colors.blue800}
         />
-        <Text style={styles.textWhite}>Loading...</Text>
-        <StatusBar style="auto" />
+        <Text style={styles.dayText}>Loading...</Text>
+        <Text style={styles.textWhite}>
+          Please allow location to get weather details.
+        </Text>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#121212",
+  loading: {
+    backgroundColor: "#222",
     color: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    // minHeight: "100vh",
-    // padding: "30px",
+    height: "100%",
+  },
+  main: {
+    alignContent: "center",
+    backgroundColor: "#000",
+    paddingTop: 55,
+    alignSelf: "center",
+    width: "100%",
+    height: "100%",
+  },
+  container: {
+    alignSelf: "center",
+    backgroundColor: "#222",
+    color: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    maxWidth: 600,
+    width: "90%",
+    borderRadius: 30,
+    paddingBottom: 16,
+    padding: 30,
   },
   textWhite: {
     color: "#fff",
@@ -211,10 +282,19 @@ const styles = StyleSheet.create({
   },
   dayText: {
     color: "#fff",
-    display: "block",
     fontSize: 24,
     alignItems: "center",
     justifyContent: "center",
-    textAlignVertical: "middle",
+    textAlignVertical: "center",
+  },
+  daySubText: {
+    color: "#ddd",
+    fontSize: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    textAlignVertical: "center",
+  },
+  mainIcon: {
+    margin: 32,
   },
 });
