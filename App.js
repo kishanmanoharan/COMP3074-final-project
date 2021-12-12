@@ -119,7 +119,7 @@ export default function App() {
           backgroundColor: "#222",
           borderRadius: 32,
           marginTop: 16,
-          minWidth: 300,
+          minWidth: "100%",
           width: "100%",
         }}
       >
@@ -163,7 +163,7 @@ export default function App() {
             maxWidth: 600,
             width: "95%",
             height: "100%",
-            borderRadius: 30,
+            borderRadius: 36,
             paddingBottom: 16,
             padding: 30,
           }}
@@ -171,7 +171,7 @@ export default function App() {
           <View style={styles.mainIcon}>
             <Fontisto
               name={setIcon(data.current.weather[0].icon)}
-              size={200}
+              size={175}
               color="white"
             />
           </View>
